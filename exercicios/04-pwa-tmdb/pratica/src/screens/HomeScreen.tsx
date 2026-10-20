@@ -49,28 +49,58 @@ export function HomeScreen({ activeTab, isFavorite, toggleFavorite }: Props) {
   const isEmpty = !loading && movies.length === 0;
 
   // ─── tab: favorites — TODO 3 ────────────────────────────────────────────────
-  // Passo 1: filtre `movies` por isFavorite(m.id) → `favMovies`
-  //   Renderize um <MovieCard key={m.id} movie={m} isFavorite={true} onToggleFavorite={toggleFavorite} />
-  //   por cada filme em favMovies dentro de <section>...</section>
-  //
-  // Passo 2: estado vazio — se favMovies.length === 0, mostre <p>:
-  //   - isEmpty é true  → 'Nenhum filme carregado ainda.'
-  //   - isEmpty é false → 'Nenhum favorito ainda — toque ★ em um filme.'
-  //   Estilo sugerido: {{ color: '#90a4ae', textAlign: 'center', padding: '40px 0', fontSize: 15 }}
-  //
-  // Passo 3: banner offline — use `isOnline` (já importado acima)
-  //   Se !isOnline, renderize ANTES da lista:
-  //   <div style={{ background:'#C2410C', color:'#fff', padding:'8px 16px', textAlign:'center', fontSize:14 }}>
-  //     📡 Offline — exibindo dados do cache
-  //   </div>
+  // Passo 1: `movies` filtrado por isFavorite(m.id) → `favMovies`, cada um
+  //   renderizado como <MovieCard isFavorite={true} onToggleFavorite={toggleFavorite} />
+  // Passo 2: estado vazio — isEmpty true  → 'Nenhum filme carregado ainda.'
+  //                                  false → 'Nenhum favorito ainda — toque ★ em um filme.'
+  // Passo 3: banner offline — renderizado antes da lista quando !isOnline
   if (activeTab === 'favorites') {
+    // Passo 1: filtra só os filmes favoritados
+    const favMovies = movies.filter((m) => isFavorite(m.id));
+
     return (
       <main style={styles.main} className="main-content">
         <AppHeader title="★ Favoritos" />
-        {/* TODO 3 — implemente os Passos 1, 2 e 3 aqui */}
-        <p style={{ color: '#90a4ae', textAlign: 'center', padding: '40px 0' }}>
-          🚧 Passo 1: filtre e renderize os filmes favoritos
-        </p>
+        {/* Passo 3: banner de offline */}
+        {!isOnline && (
+          <div
+            style={{
+              background: '#C2410C',
+              color: '#fff',
+              padding: '8px 16px',
+              textAlign: 'center',
+              fontSize: 14,
+            }}
+          >
+            📡 Offline — exibindo dados do cache
+          </div>
+        )}
+        <section>
+          {favMovies.length === 0 ? (
+            // Passo 2: estado vazio (com/sem filme carregado)
+            <p
+              style={{
+                color: '#90a4ae',
+                textAlign: 'center',
+                padding: '40px 0',
+                fontSize: 15,
+              }}
+            >
+              {isEmpty
+                ? 'Nenhum filme carregado ainda.'
+                : 'Nenhum favorito ainda — toque ★ em um filme.'}
+            </p>
+          ) : (
+            favMovies.map((m) => (
+              <MovieCard
+                key={m.id}
+                movie={m}
+                isFavorite={true}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))
+          )}
+        </section>
       </main>
     );
   }
