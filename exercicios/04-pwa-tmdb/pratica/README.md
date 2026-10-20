@@ -113,6 +113,16 @@ pratica/
 
 ## Entrega
 
+### Evidência local
+
+![Favorito preservado após recarregar offline](evidencias/favoritos-offline.png)
+
+Captura no Chrome, após favoritar e recarregar sem rede. A resposta do TMDB foi
+simulada no teste; favoritos, IndexedDB e Service Worker são os da aplicação.
+Os ícones PNG de instalação (192 e 512 px) também foram verificados via HTTP.
+
+Validação local: `npm test` (11 testes) e `npm run build` passaram.
+
 ```bash
 git checkout -b feat/a4-pwa
 
