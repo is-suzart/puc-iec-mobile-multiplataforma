@@ -44,6 +44,13 @@ o provider centraliza a fonte, elimina o encadeamento de parâmetros e mantém a
 Veja o `guia-passo-a-passo.md` (na pasta do exercício) e o `enunciado.md` (rubrica).
 
 ## Entrega
+
+![Lista com dois favoritos e contador compartilhado](evidencias/favoritos.png)
+
+Validação local: 8 testes passaram, `flutter analyze` sem problemas e
+`flutter build web` concluído. No Chrome, favoritar atualizou o contador e
+o botão limpar zerou o estado.
+
 Fork + PR no repo público; link no Canvas. O **J.A.R.V.I.S.** roda `flutter test` no seu PR.
 - ✏️ **Edite os arquivos dentro de `exercicios/03-flutter-ui-estado/pratica/` (no lugar)** — **não crie subpasta** `aluno-.../`. O autograder roda `flutter test` nessa pasta.
 
