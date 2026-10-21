@@ -32,9 +32,9 @@ Elas liberam apenas o documento do exercício, mas **sem autenticação**: qualq
 pessoa que conheça o projeto pode ler/escrever esse documento. Não use dados pessoais.
 O documento é compartilhado, e gravações simultâneas adotam a última escrita.
 
-**Pendente para a entrega completa:** configurar o projeto Firebase pessoal e
-registrar o favorito sobrevivendo ao refresh na nuvem. As evidências abaixo são
-reais, mas usam o **emulador**, e não comprovam essa parte em nuvem.
+O projeto pessoal **`pos-puv`**, banco **`(default)`**, foi configurado e validado
+na nuvem. A configuração Web fica em `firebase.local.json` (ignorado pelo Git).
+As capturas abaixo distinguem o teste na nuvem dos testes locais com emulador.
 
 ## Verificações
 
@@ -52,13 +52,33 @@ oficiais `app_test.dart`, `checklist_test.dart` e `offline_test.dart` correspond
 | Requisito | Implementação / verificação |
 |---|---|
 | UI e estado compartilhado | card com pôster, título/nota/ano; contador e limpar; testes de widgets |
-| Firestore | listener de snapshots e escrita; servidor do emulador conferido e leitura em um novo contexto sem cache |
+| Firestore | leitura/escrita no projeto real; refresh, leitura em contexto sem cache, escrita offline e sincronização entre sessões |
 | Offline | persistência do Firestore; banner condicionado a `onlineProvider` |
 | Serialização | `toJson`/`fromJson`, inclusive nota inteira e caminho do pôster |
 | Cache-first e TTL | cache imediato; fresco evita API; vencido revalida; offline sem cache propaga erro |
 | SyncQueue | deduplicação, cancelamento de ações opostas; flush ordenado e persistido a cada sucesso; para no primeiro erro |
 
-### Evidências locais (Firestore emulado)
+### Evidências do Firestore real — pos-puv / (default)
+
+O favorito foi gravado na nuvem e confirmado pela API REST do Firestore.
+Depois do refresh, continuou selecionado:
+
+![Favorito na nuvem antes de recarregar](evidencias/firestore-cloud-antes-refresh.png)
+
+![Favorito na nuvem após recarregar](evidencias/firestore-cloud-depois-refresh.png)
+
+Uma sessão nova, sem o IndexedDB/cache da primeira, também leu o favorito do
+servidor. Com a rede real cortada, outro favorito foi atualizado localmente e
+ficou pendente; o documento remoto permaneceu inalterado. Ao restabelecer a rede,
+o SDK sincronizou a escrita e a segunda sessão recebeu a mudança via snapshots.
+
+![Lista e escrita local com a rede real cortada](evidencias/firestore-cloud-offline.png)
+
+Os dados de confirmação, sem API key, estão em
+[firestore-cloud.json](evidencias/firestore-cloud.json). Ao final do teste foi
+mantido apenas o filme de id 1 nos favoritos do documento do laboratório.
+
+### Evidências anteriores — Firestore emulado
 
 Favorito antes do refresh:
 
