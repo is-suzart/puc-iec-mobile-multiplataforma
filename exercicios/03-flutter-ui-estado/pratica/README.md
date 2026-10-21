@@ -1,57 +1,93 @@
-# Filmes (Flutter) — pratica/ da Atividade 3
+# Atividade 3 — Flutter, Riverpod, Firestore e offline-first
 
-App de catálogo de filmes em **Flutter**. Já roda; você completa os scaffolds (UI + estado) até `flutter test` ficar verde.
+## Rodar localmente
 
-## Rodar
 ```bash
+cd exercicios/03-flutter-ui-estado/pratica
 flutter pub get
-flutter run -d chrome   # abre no navegador — sem emulador, sem rede/token
+# Terminal 1: Firestore local, sem conta Firebase ou serviços pagos
+npx --yes firebase-tools@15.0.0 emulators:start --only firestore --project demo-puc-mobile
+# Terminal 2: mantenha a porta fixa, pois o cache é por origem
+flutter run -d chrome --web-port 5300
 ```
 
-## Testar (é o gate da Atividade 3)
+O padrão usa o emulador em `127.0.0.1:8085`, projeto `demo-puc-mobile`.
+Os favoritos são lidos e gravados pelo SDK do Firestore no documento
+`favorites/meus-favoritos`. O estado do emulador dura enquanto ele está iniciado.
+A persistência offline do SDK está habilitada. O botão avião simula a conexão
+da fonte de filmes; para cortar a rede do Firestore também, use Network → Offline.
+
+## Usar seu projeto Firebase em nuvem
+
+Crie um app Web e o Firestore no seu projeto Spark, conforme o enunciado.
+Copie `firebase.local.example.json` para `firebase.local.json` e preencha os
+quatro campos públicos da configuração Web. Mantenha `FIRESTORE_EMULATOR=false`.
+
 ```bash
-flutter test            # Ex1 (card) · Ex2 (favoritar/limpar) · Ex3 (seu teste) · checklist (auto-verificação)
-flutter analyze         # precisa ficar limpo
+flutter run -d chrome --web-port 5300 --dart-define-from-file=firebase.local.json
 ```
-Comece com os testes **vermelhos**; deixe-os **verdes**.
 
-> `test/checklist_test.dart` é sua **auto-verificação** (não edite): tudo verde = você terminou.
+Aplique no console as regras de laboratório presentes em `firestore.rules`.
+Elas liberam apenas o documento do exercício, mas **sem autenticação**: qualquer
+pessoa que conheça o projeto pode ler/escrever esse documento. Não use dados pessoais.
+O documento é compartilhado, e gravações simultâneas adotam a última escrita.
 
-## Por que `provider` > prop drilling?
+**Pendente para a entrega completa:** configurar o projeto Firebase pessoal e
+registrar o favorito sobrevivendo ao refresh na nuvem. As evidências abaixo são
+reais, mas usam o **emulador**, e não comprovam essa parte em nuvem.
 
-Neste app o estado dos favoritos precisa aparecer em **três lugares ao mesmo tempo** — o coração
-de cada `MovieCard`, o contador `♥ N` do header e o botão *limpar*. Passar o estado por parâmetro
-(prop drilling) obrigaria o `HomeScreen` a declarar `favorites`, `onToggle`, `onClear` e repassá-los
-para cada filho, e cada novo widget intermediário passaria a carregar esse peso — o acoplamento
-cresce com a profundidade da árvore e qualquer novo ponto de exibição vira uma mudança em N
-assinaturas. Com Riverpod, `favoritesProvider` é a **única fonte de verdade**: o card, o contador e
-o botão fazem `ref.watch(favoritesProvider)` / `ref.read(favoritesProvider.notifier)` e pronto. Como o
-estado é imutável (cada `toggle` cria um `Set` novo), o Riverpod sabe exatamente quem depende dele e
-re-renderiza **só** esses widgets, o que também torna o estado trivialmente testável isoladamente
-(`ProviderContainer`, sem UI) e evita re-renderizações desnecessárias da tela inteira. Em resumen:
-o provider centraliza a fonte, elimina o encadeamento de parâmetros e mantém a UI declarativa.
+## Verificações
 
-## O que completar (🧑‍🏫 aula · 🧑‍💻 casa)
-| TASK | Arquivo | O quê | |
-|---|---|---|---|
-| 1 | `lib/widgets/movie_card.dart` | compor o card (título + ⭐ nota + ano) | 🧑‍🏫 |
-| 2 | `lib/state/favorites.dart` | `favoritesProvider` (`toggle` + `clear`) | 🧑‍🏫 |
-| 3 | `lib/widgets/movie_card.dart` | coração favoritando (`ConsumerWidget` + `ref`) | 🧑‍💻 |
-| 4 | `lib/screens/home_screen.dart` | contador `♥ N` no header | 🧑‍💻 |
-| 5 | `lib/screens/home_screen.dart` | botão **limpar** favoritos | 🧑‍💻 |
-| 6 | `test/favorites_test.dart` | **você escreve** um teste do provider | 🧑‍💻 |
+```bash
+flutter test
+flutter test test/offline_test.dart
+flutter analyze
+flutter build web
+```
 
-Veja o `guia-passo-a-passo.md` (na pasta do exercício) e o `enunciado.md` (rubrica).
+28 testes passaram, análise sem problemas e build web concluído. Os testes
+oficiais `app_test.dart`, `checklist_test.dart` e `offline_test.dart` correspondem
+à versão atual do professor e não tiveram asserções alteradas.
 
-## Entrega
+| Requisito | Implementação / verificação |
+|---|---|
+| UI e estado compartilhado | card com pôster, título/nota/ano; contador e limpar; testes de widgets |
+| Firestore | listener de snapshots e escrita; servidor do emulador conferido e leitura em um novo contexto sem cache |
+| Offline | persistência do Firestore; banner condicionado a `onlineProvider` |
+| Serialização | `toJson`/`fromJson`, inclusive nota inteira e caminho do pôster |
+| Cache-first e TTL | cache imediato; fresco evita API; vencido revalida; offline sem cache propaga erro |
+| SyncQueue | deduplicação, cancelamento de ações opostas; flush ordenado e persistido a cada sucesso; para no primeiro erro |
 
-![Lista com dois favoritos e contador compartilhado](evidencias/favoritos.png)
+### Evidências locais (Firestore emulado)
 
-Validação local: 8 testes passaram, `flutter analyze` sem problemas e
-`flutter build web` concluído. No Chrome, favoritar atualizou o contador e
-o botão limpar zerou o estado.
+Favorito antes do refresh:
 
-Fork + PR no repo público; link no Canvas. O **J.A.R.V.I.S.** roda `flutter test` no seu PR.
-- ✏️ **Edite os arquivos dentro de `exercicios/03-flutter-ui-estado/pratica/` (no lugar)** — **não crie subpasta** `aluno-.../`. O autograder roda `flutter test` nessa pasta.
+![Favorito antes de recarregar](evidencias/firestore-antes-refresh.png)
 
-> **Não comite** `.dart_tool/`, `build/`, `pubspec.lock` (já no `.gitignore`).
+Depois do refresh, o favorito permanece. Um novo contexto do navegador, sem o
+cache do primeiro, também leu o mesmo favorito do servidor do emulador:
+
+![Favorito após recarregar](evidencias/firestore-depois-refresh.png)
+
+Lista em cache e banner com modo avião simulado:
+
+![App offline com dados salvos](evidencias/offline-cache.png)
+
+## Decisões
+
+Riverpod compartilha o estado entre card, contador e limpar sem repassar
+parâmetros por widgets intermediários. O estado local reage rápido, mas sozinho
+morre no refresh. O Firestore persiste e pode sincronizar dispositivos, ao custo
+de latência, regras de acesso e conflitos. Offline-first combina cache local com
+revalidação: mantém a tela útil sem rede, mas pode mostrar dados antigos. O TTL
+limita as buscas e a fila guarda operações até que possam ser enviadas. Neste
+exercício a SyncQueue é testada isoladamente; conectá-la aos favoritos é bônus,
+e o SDK do Firestore já mantém sua própria fila de escritas offline.
+
+Remote Config (TASK 8) foi adiado e não foi implementado.
+
+## Uso de IA
+
+As implementações tiveram assistência de IA. A revisão inicial usou uma versão
+antiga do enunciado; esta revisão incorporou os requisitos atuais e executou
+os testes e as verificações de navegador descritos acima.

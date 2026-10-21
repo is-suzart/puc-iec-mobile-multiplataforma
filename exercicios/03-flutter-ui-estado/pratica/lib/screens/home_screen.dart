@@ -6,9 +6,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/movies.dart';
 import '../state/favorites.dart';
-import '../widgets/movie_card.dart';
+import '../widgets/movie_list.dart';
+import '../widgets/offline_banner.dart';
+import '../widgets/offline_toggle.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Filmes'),
         actions: [
+          const OfflineToggle(),
           // ── Ex2 · TASK 5 — botão "limpar" favoritos ─────────────────────────────
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -35,9 +37,11 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: movies.length,
-        itemBuilder: (context, i) => MovieCard(movie: movies[i]),
+      body: const Column(
+        children: [
+          OfflineBanner(),
+          Expanded(child: MovieList()),
+        ],
       ),
     );
   }
